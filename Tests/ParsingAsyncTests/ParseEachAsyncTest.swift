@@ -20,6 +20,37 @@ class ParseEachAsync: XCTestCase {
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
+    
+    func testParseEach() async throws {
+        var strings = ["1"[...], "2"[...], "3"[...]].makeIterator()
+        var iter = AnyIterator {
+            strings.next()
+        }
+        
+        actor Results {
+            var data: [Int] = []
+            
+            func append(_ value: Int) {
+                data.append(value)
+            }
+            
+            func assert(_ expected: [Int]) {
+                XCTAssertEqual(data, expected)
+            }
+        }
+        
+        let results = Results()
+        
+        await Int.parser(of: Substring.self).parse(each: &iter) { value in
+            guard let value = value else {
+                return .finish
+            }
+            await results.append(value)
+            return .continue
+        }
+        
+        await results.assert([1, 2, 3])
+    }
 
     func testFiniteList() async throws {
         var strings = ["1"[...], "2"[...], "3"[...]].makeIterator()
@@ -58,5 +89,6 @@ class ParseEachAsync: XCTestCase {
         
         XCTAssertEqual(results, [1, 2, 3, 4, 5])
         XCTAssertTrue(counter >= 5)
+        print("counter: \(counter)")
     }
 }
