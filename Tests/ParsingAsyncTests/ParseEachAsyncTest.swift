@@ -10,6 +10,19 @@ import Parsing
 
 import ParsingAsync
 
+actor Results {
+    var data: [Int] = []
+    
+    func append(_ value: Int) {
+        data.append(value)
+    }
+    
+    func assertEqual(_ expected: [Int]) {
+        XCTAssertEqual(data, expected)
+    }
+}
+
+
 @available(macOS 10.15, *)
 class ParseEachAsync: XCTestCase {
 
@@ -27,18 +40,6 @@ class ParseEachAsync: XCTestCase {
             strings.next()
         }
         
-        actor Results {
-            var data: [Int] = []
-            
-            func append(_ value: Int) {
-                data.append(value)
-            }
-            
-            func assert(_ expected: [Int]) {
-                XCTAssertEqual(data, expected)
-            }
-        }
-        
         let results = Results()
         
         await Int.parser(of: Substring.self).parse(each: &iter) { value in
@@ -49,7 +50,30 @@ class ParseEachAsync: XCTestCase {
             return .continue
         }
         
-        await results.assert([1, 2, 3])
+        await results.assertEqual([1, 2, 3])
+    }
+    
+    func testParseEachAsync() async throws {
+        let strings = ["1"[...], "2"[...], "3"[...]]
+        let sequence = AsyncStream<Substring> { continuation in
+            for string in strings {
+                continuation.yield(string)
+            }
+            continuation.finish()
+        }
+        var iter = sequence.makeAsyncIterator()
+        
+        let results = Results()
+        
+        try await Int.parser(of: Substring.self).parse(each: &iter) { value in
+            guard let value = value else {
+                return .finish
+            }
+            await results.append(value)
+            return .continue
+        }
+        
+        await results.assertEqual([1, 2, 3])
     }
 
     func testFiniteList() async throws {
@@ -90,5 +114,28 @@ class ParseEachAsync: XCTestCase {
         XCTAssertEqual(results, [1, 2, 3, 4, 5])
         XCTAssertTrue(counter >= 5)
         print("counter: \(counter)")
+    }
+    
+    func testParseEachAsyncSequence() async throws {
+        let strings = ["1"[...], "2"[...], "3"[...]]
+        var sequence = AsyncStream<Substring> { continuation in
+            for string in strings {
+                continuation.yield(string)
+            }
+            continuation.finish()
+        }
+
+        let results = Results()
+        
+        try await Int.parser(of: Substring.self).parse(each: &sequence) { value in
+            guard let value = value else {
+                return .finish
+            }
+            await results.append(value)
+            return .continue
+        }
+        
+        await results.assertEqual([1, 2, 3])
+
     }
 }

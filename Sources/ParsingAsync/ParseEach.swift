@@ -8,11 +8,17 @@
 import Parsing
 
 /// Used by ``Parser/parse(each:to:) -> SwiftStatus`` to indicate if the closure wants to continue receiving future outputs.
-public enum StreamStatus: Hashable {
-    /// Provide more output
-    case `continue`
-    /// No more output wanted.
-    case `finish`
+extension Parsers {
+    public enum StreamStatus: Hashable {
+        /// Provide more output
+        case `continue`
+        /// No more output wanted.
+        case `finish`
+    }
+}
+
+extension Parser where Input: RangeReplaceableCollection {
+    public typealias StreamStatus = Parsers.StreamStatus
 }
 
 extension Parser where Input: RangeReplaceableCollection {
