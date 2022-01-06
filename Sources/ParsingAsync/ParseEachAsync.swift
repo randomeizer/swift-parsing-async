@@ -96,7 +96,7 @@ extension Parser where Input: RangeReplaceableCollection {
                 
                 await Task.yield()
                 
-                parse(each: &iterator) { value in
+                await parse(each: &iterator) { value in
                     guard let value = value else {
                         continuation.finish()
                         return .finish

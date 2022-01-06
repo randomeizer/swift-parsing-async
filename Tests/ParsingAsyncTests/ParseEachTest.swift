@@ -6,7 +6,7 @@
 //
 
 import XCTest
-
+import Parsing
 import ParsingAsync
 
 class ParseEachTest: XCTestCase {
@@ -35,7 +35,49 @@ class ParseEachTest: XCTestCase {
             return .continue
         }
         
-        XCTAssertEqual(results, [1, 2, 3])
+        XCTAssertEqual(results, [123])
+    }
+    
+    func testParseEachLazily() throws {
+        var strings = ["1"[...], "2"[...], "a"[...]].makeIterator()
+        var iter = AnyIterator {
+            strings.next()
+        }
+        
+        var results: [Int] = []
+
+        Int.parser(of: Substring.self)
+        .parse(each: &iter, consume: .lazily) { value in
+            guard let value = value else {
+                return .finish
+            }
+            results.append(value)
+            return .continue
+        }
+        
+        XCTAssertEqual(results, [12])
+        XCTAssertEqual(strings.next(), nil)
+    }
+
+    func testParseEachEagerly() throws {
+        var strings = ["1"[...], "2"[...], "a"[...]].makeIterator()
+        var iter = AnyIterator {
+            strings.next()
+        }
+        
+        var results: [Int] = []
+
+        Int.parser(of: Substring.self)
+        .parse(each: &iter, consume: .eagerly) { value in
+            guard let value = value else {
+                return .finish
+            }
+            results.append(value)
+            return .continue
+        }
+        
+        XCTAssertEqual(results, [1, 2])
+        XCTAssertEqual(strings.next(), nil)
     }
 
 }
