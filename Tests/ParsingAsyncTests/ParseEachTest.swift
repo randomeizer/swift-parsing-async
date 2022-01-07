@@ -79,5 +79,28 @@ class ParseEachTest: XCTestCase {
         XCTAssertEqual(results, [1, 2])
         XCTAssertEqual(strings.next(), nil)
     }
-
+    
+    func testParseEachLazilyMultiple() throws {
+        var strings = ["1"[...], "2"[...], "a34"[...], "56b"[...]].makeIterator()
+        
+        var iter = AnyIterator {
+            strings.next()
+        }
+        
+        var results: [Int] = []
+        
+        Parse {
+            Skip(Prefix(0...) { !$0.isNumber })
+            Int.parser(of: Substring.self)
+        }.parse(each: &iter, consume: .lazily) { value in
+            guard let value = value else {
+                return .finish
+            }
+            results.append(value)
+            return .continue
+        }
+        
+        XCTAssertEqual(results, [12, 3456])
+        XCTAssertEqual(strings.next(), nil)
+    }
 }

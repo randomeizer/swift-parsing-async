@@ -34,7 +34,7 @@ class ParseEachAsync: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     
-    func testParseEach() async throws {
+    func testParseEachLazily() async throws {
         var strings = ["1"[...], "2"[...], "3"[...]].makeIterator()
         var iter = AnyIterator {
             strings.next()
@@ -50,8 +50,28 @@ class ParseEachAsync: XCTestCase {
             return .continue
         }
         
+        await results.assertEqual([123])
+    }
+    
+    func testParseEachEagerly() async throws {
+        var strings = ["1"[...], "2"[...], "3"[...]].makeIterator()
+        var iter = AnyIterator {
+            strings.next()
+        }
+        
+        let results = Results()
+        
+        await Int.parser(of: Substring.self).parse(each: &iter, consume: .eagerly) { value in
+            guard let value = value else {
+                return .finish
+            }
+            await results.append(value)
+            return .continue
+        }
+        
         await results.assertEqual([1, 2, 3])
     }
+
     
     func testParseEachAsync() async throws {
         let strings = ["1"[...], "2"[...], "3"[...]]
@@ -73,10 +93,10 @@ class ParseEachAsync: XCTestCase {
             return .continue
         }
         
-        await results.assertEqual([1, 2, 3])
+        await results.assertEqual([123])
     }
 
-    func testFiniteList() async throws {
+    func testFiniteStream() async throws {
         var strings = ["1"[...], "2"[...], "3"[...]].makeIterator()
         let iter = AnyIterator {
             strings.next()
@@ -90,17 +110,17 @@ class ParseEachAsync: XCTestCase {
             results.append(value)
         }
         
-        XCTAssertEqual(results, [1, 2, 3])
+        XCTAssertEqual(results, [123])
     }
     
-    func testInfiniteList() async throws {
+    func testInfiniteStream() async throws {
         var counter = 0
         let iter = AnyIterator<Substring> {
-            counter = counter + 1
-            return String(counter)[...]
+            counter += 1
+            return "\(counter)"[...]
         }
         
-        let stream = Int.parser(of: Substring.self).parse(each: iter)
+        let stream = Int.parser(of: Substring.self).parse(each: iter, consume: .eagerly)
         
         var results: [Int] = []
         
@@ -127,7 +147,7 @@ class ParseEachAsync: XCTestCase {
 
         let results = Results()
         
-        try await Int.parser(of: Substring.self).parse(each: &sequence) { value in
+        try await Int.parser(of: Substring.self).parse(each: &sequence, consume: .eagerly) { value in
             guard let value = value else {
                 return .finish
             }
