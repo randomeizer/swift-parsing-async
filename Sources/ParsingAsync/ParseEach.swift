@@ -37,7 +37,7 @@ extension Parser where Input: RangeReplaceableCollection {
     ///
     /// - Parameters:
     ///   - each: The incoming `AnyIterator`
-    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
+    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`
     ///   - to: The closure called with the next value, returning `.finish` or `.continue`.
     public func parse(
         each input: inout AnyIterator<Input>,

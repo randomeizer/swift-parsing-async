@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/pointfreeco/swift-parsing.git", branch: "parser-builder-printer"),
+        .package(url: "https://github.com/pointfreeco/swift-parsing.git", from: "0.5.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.

@@ -15,8 +15,8 @@ extension Parser where Input: RangeReplaceableCollection {
     /// With either response, a final `nil` value is sent indicate the stream has closed.
     ///
     /// - Parameters:
-    ///   - each: The incoming `AnyIterator`
-    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
+    ///   - each: The incoming ``AnyIterator``
+    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`
     ///   - to: The asynchronous closure called with the next value, returning `.finish` or `.continue`.
     public func parse(
         each input: inout AnyIterator<Input>,
@@ -60,8 +60,8 @@ extension Parser where Input: RangeReplaceableCollection {
     /// With either response, a final `nil` value is sent to close out the stream.
     ///
     /// - Parameters:
-    ///   - each: The incoming `AsyncIteratorProtocol` instance
-    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
+    ///   - each: The incoming ``AsyncIteratorProtocol`` instance
+    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`
     ///   - to: The asynchronous closure called with the next value, returning `.finish` or `.continue`.
     public func parse<Iterator>(
         each input: inout Iterator,
@@ -108,8 +108,8 @@ extension Parser where Input: RangeReplaceableCollection {
     /// With either response, a final `nil` value is sent to close out the stream.
     ///
     /// - Parameters:
-    ///   - each: The incoming `AsyncSequence` instance
-    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
+    ///   - each: The incoming ``AsyncSequence`` instance
+    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`.
     ///   - to: The asynchronous closure called with the next value, returning `.finish` or `.continue`.
     public func parse<Sequence>(
         each input: inout Sequence,
@@ -121,12 +121,12 @@ extension Parser where Input: RangeReplaceableCollection {
         try await parse(each: &iterator, consume: consume, to: receiver)
     }
 
-    /// Iterates through the provided input, sending it to the returned `AsyncStream` when the accumulated input is parsable.
+    /// Iterates through the provided input, sending it to the returned ``AsyncStream`` when the accumulated input is parsable.
     ///
     /// - Parameter each: The iterator of inputs to be parsed.
-    /// - Parameter consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
-    /// - Parameter bufferingPolicy: The buffering policy the `AsyncStream` will use.
-    /// - Returns: The `AsyncStream` to receive the parsed values on.
+    /// - Parameter consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`.
+    /// - Parameter bufferingPolicy: The buffering policy the ``AsyncStream`` will use.
+    /// - Returns: The ``AsyncStream`` to receive the parsed values on.
     public func parse(
         each input: AnyIterator<Input>,
         consume: StreamConsumption = .lazily,
@@ -157,13 +157,13 @@ extension Parser where Input: RangeReplaceableCollection {
     }
     
     
-    /// Iterates through the provided `AsyncIteratorProtocol` instance, sending it to the
-    /// returned `AsyncStream` when the accumulated input is parsable.
+    /// Iterates through the provided ``AsyncIteratorProtocol`` instance, sending it to the
+    /// returned ``AsyncStream`` when the accumulated input is parsable.
     ///
     /// - Parameter each: The iterator of inputs to be parsed.
-    /// - Parameter consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`)
-    /// - Parameter bufferingPolicy: The buffering policy the `AsyncStream` will use.
-    /// - Returns: The `AsyncStream` to receive the parsed values on.
+    /// - Parameter consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`.
+    /// - Parameter bufferingPolicy: The buffering policy the ``AsyncStream`` will use.
+    /// - Returns: The ``AsyncStream`` to receive the parsed values on.
     public func parse<Iterator>(
         each input: Iterator,
         consume: StreamConsumption = .lazily,
@@ -171,7 +171,8 @@ extension Parser where Input: RangeReplaceableCollection {
     ) -> AsyncStream<Output>
     where Iterator: AsyncIteratorProtocol, Iterator.Element == Input
     {
-        AsyncStream(bufferingPolicy: limit) { continuation in
+        #warning("There is currently no way to determine how much of the input was consumed with this function")
+        return AsyncStream(bufferingPolicy: limit) { continuation in
             Task {
                 var iterator = input
                 
@@ -194,6 +195,13 @@ extension Parser where Input: RangeReplaceableCollection {
         }
     }
     
+    /// Iterates throught the provided ``AsyncSequence`` instance, sending the results to the returned ``AsyncStream``
+    /// when the accumulated input is parsable.
+    ///
+    /// - Parameters:
+    ///   - input: The input sequence.
+    ///   - consume: Indicates whether to consume the `Input` as soon as possible (`.eagerly`) or late as possible (`.lazily`). Defaults to `.lazily`.
+    /// - Returns: The ``AsyncStream``.
     public func parse<Sequence>(
         each input: Sequence,
         consume: StreamConsumption = .lazily,
@@ -201,9 +209,8 @@ extension Parser where Input: RangeReplaceableCollection {
     ) -> AsyncStream<Output>
     where Sequence: AsyncSequence, Sequence.Element == Input
     {
-        
-        
-        AsyncStream(bufferingPolicy: limit) { continuation in
+        #warning("There is currently no way to determine how much of the input was consumed with this function")
+        return AsyncStream(bufferingPolicy: limit) { continuation in
             Task {
                 var buffer = Input()
                 

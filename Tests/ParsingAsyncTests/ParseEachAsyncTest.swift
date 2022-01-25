@@ -158,4 +158,46 @@ class ParseEachAsync: XCTestCase {
         await results.assertEqual([1, 2, 3])
 
     }
+    
+    func testParseEachAsyncSequenceToAsyncStream() async throws {
+        let strings = ["1"[...], "2"[...], "3"[...]]
+        let sequence = AsyncStream<Substring> { continuation in
+            for string in strings {
+                continuation.yield(string)
+            }
+            continuation.finish()
+        }
+
+        var results: [Int] = []
+        
+        let result = Int.parser(of: Substring.self).parse(each: sequence, consume: .eagerly)
+        
+        for await value in result {
+            results.append(value)
+        }
+        
+        XCTAssertEqual(results, [1, 2, 3])
+    }
+    
+    func testParseEachAsyncSequenceToAsyncStreamLazily() async throws {
+        let strings = ["1"[...], "2"[...], "3"[...], "a"[...]]
+        let sequence = AsyncStream<Substring> { continuation in
+            for string in strings {
+                continuation.yield(string)
+            }
+            continuation.finish()
+        }
+
+        var results: [Int] = []
+        
+        let result = Int.parser(of: Substring.self).parse(each: sequence, consume: .lazily)
+        
+        for await value in result {
+            results.append(value)
+        }
+        
+        XCTAssertEqual(results, [123])
+    }
+
+
 }
